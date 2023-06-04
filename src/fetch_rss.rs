@@ -17,14 +17,13 @@ use crate::{
     utils,
 };
 
-const SLEEP_EACH_FETCH_MINUTES: u64 = 1;
-const SLEEP_ALL_FETCH_MINUTES: u64 = 3;
+const SLEEP_EACH_FETCH_MINUTES: u64 = 10;
+const SLEEP_ALL_FETCH_MINUTES: u64 = 15;
 
 pub async fn feed_loop(client: Arc<SlackHyperClient>) -> anyhow::Result<()> {
     let mut interval = tokio::time::interval(Duration::from_secs(SLEEP_ALL_FETCH_MINUTES * 60));
 
     loop {
-        println!("loop start");
         let rss_urls = fetch_rss_urls().await.unwrap_or_default();
 
         let rss_urls_stream = futures::stream::iter(rss_urls);
@@ -54,7 +53,6 @@ async fn fetch_twi_url(nitter_rss_url: &Url) -> anyhow::Result<(Vec<Url>, Vec<Sl
     let raw_rss = reqwest::get(nitter_rss_url.clone()).await?;
 
     let rss_bytes = raw_rss.bytes().await?;
-    println!("request occured");
 
     let channel = Channel::read_from(&rss_bytes[..])?;
     let items = channel.items().to_vec();

@@ -1,0 +1,26 @@
+display_information:
+  name: mock_twitter
+  description: fetch tweet from nitter
+  background_color: "#737373"
+features:
+  bot_user:
+    display_name: mock_twitter
+    always_online: false
+  slash_commands:
+    - command: /mock_twitter
+      description: scrape twitter using nitter
+      usage_hint: /twitter_false https://nitter.it/twitterjp/rss
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - chat:write
+      - chat:write.customize
+      - commands
+      - groups:write
+settings:
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false

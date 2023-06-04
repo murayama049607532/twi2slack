@@ -39,8 +39,6 @@ pub async fn setup_db() -> anyhow::Result<()> {
     .execute(&pool)
     .await?;
 
-    println!("Create user table result: {:?}", _last_item);
-
     let _feed_channel = sqlx::query(
         "CREATE TABLE IF NOT EXISTS feed_channel
 (
@@ -51,8 +49,6 @@ PRIMARY KEY (rss_url, channel)
     )
     .execute(&pool)
     .await?;
-
-    println!("Create user table result: {:?}", _feed_channel);
 
     Ok(())
 }
