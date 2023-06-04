@@ -1,14 +1,16 @@
-use std::sync::Arc;
+use std::{env, fmt::format, sync::Arc};
 
 use anyhow::Context;
+use dotenvy::dotenv;
 use slack_morphism::{
     prelude::{
         SlackClientEventsUserState, SlackCommandEvent, SlackCommandEventResponse, SlackHyperClient,
     },
     SlackMessageContent,
 };
+use url::Url;
 
-use crate::query;
+use crate::{query, utils};
 
 pub async fn command_event_handler(
     event: SlackCommandEvent,
@@ -17,21 +19,45 @@ pub async fn command_event_handler(
 ) -> Result<SlackCommandEventResponse, Box<dyn std::error::Error + Send + Sync>> {
     let channel_id_command = event.channel_id.clone();
 
-    let nitter_url_str = event.text.clone().context("No text")?;
-    let nitter_url_str_validate = validate_url(&nitter_url_str)?;
-    let nitter_url = url::Url::parse(&nitter_url_str_validate).context("Invalid input.")?;
+    let text = event.text.clone().context("No text")?;
+    let mut args = text.split_whitespace();
+    let first_arg = args.next().context("No text")?;
 
-    query::insert_feed_channel(&channel_id_command, &nitter_url).await?;
+    let content = match first_arg {
+        "remove" => {
+            let account = args.next().context("Invalid input")?;
+            query::remove_rss(&channel_id_command, account).await?;
 
-    Ok(SlackCommandEventResponse::new(
-        SlackMessageContent::new().with_text("Working on it".into()),
-    ))
+            SlackMessageContent::new().with_text(format!("@{account} の収集を停止します。"))
+        }
+        add => {
+            let nitter_url_or_account = url::Url::parse(add).context("Invalid input.");
+
+            let nitter_url = if let Ok(url) = nitter_url_or_account {
+                url
+            } else {
+                account_to_default_nitter_rss_url(add)?
+            };
+
+            query::insert_last_item(&nitter_url).await?;
+            query::insert_feed_channel(&channel_id_command, &nitter_url).await?;
+
+            let account = utils::url_to_account(&nitter_url)?;
+
+            SlackMessageContent::new().with_text(format!("@{account} の収集を開始します。"))
+        }
+    };
+
+    Ok(SlackCommandEventResponse::new(content))
 }
 
-fn validate_url(nitter_url: &str) -> anyhow::Result<String> {
-    match nitter_url {
-        s if s.ends_with("/rss/") => Ok(s.to_string()),
-        s if s.ends_with("/rss") => Ok(format!("{s}/")),
-        _ => Err(anyhow::anyhow!("invalid input")),
-    }
+fn account_to_default_nitter_rss_url(account: &str) -> anyhow::Result<Url> {
+    dotenv().ok();
+    let default_url_str = env::var("DEFAULT_NITTER_URL")?;
+    let default_url = url::Url::parse(&default_url_str)?;
+
+    let add_seg = format!("{account}/rss");
+    let nitter_rss_url = default_url.join(&add_seg)?;
+
+    Ok(nitter_rss_url)
 }

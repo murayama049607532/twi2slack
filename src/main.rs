@@ -12,6 +12,7 @@ async fn socket_mode_process(
     client: Arc<SlackHyperClient>,
     app_token: Arc<SlackApiToken>,
 ) -> anyhow::Result<()> {
+    println!("socket_mode start");
     let socket_mode_callbacks = SlackSocketModeListenerCallbacks::new()
         .with_command_events(command_event_handler::command_event_handler);
     let listner_environment = Arc::new(
@@ -45,8 +46,10 @@ async fn main() -> anyhow::Result<()> {
     let app_token = Arc::new(utils::get_token(&SlackApiTokenType::App)?);
     let client = Arc::new(SlackClient::new(SlackClientHyperConnector::new()));
 
-    let listen = socket_mode_process(Arc::clone(&client), Arc::clone(&app_token));
-    tokio::spawn(listen);
+    tokio::spawn(socket_mode_process(
+        Arc::clone(&client),
+        Arc::clone(&app_token),
+    ));
 
     fetch_rss::feed_loop(client).await?;
 
