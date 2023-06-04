@@ -1,4 +1,4 @@
-use std::{env, fmt::format, sync::Arc};
+use std::{env, sync::Arc};
 
 use anyhow::Context;
 use dotenvy::dotenv;

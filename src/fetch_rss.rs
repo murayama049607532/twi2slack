@@ -1,14 +1,13 @@
-use core::fmt;
 use std::sync::Arc;
 
 use anyhow::Context;
-use futures::{future, sink::Feed, StreamExt, TryStreamExt};
+use futures::{StreamExt, TryStreamExt};
 use rss::{Channel, Item};
 use slack_morphism::{
-    prelude::{SlackApiChatPostMessageRequest, SlackClientEventsUserState, SlackHyperClient},
+    prelude::{SlackApiChatPostMessageRequest, SlackHyperClient},
     SlackApiToken, SlackApiTokenType, SlackChannelId, SlackMessageContent,
 };
-use sqlx::FromRow;
+
 use tokio::time::Duration;
 use url::Url;
 

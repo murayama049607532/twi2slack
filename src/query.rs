@@ -1,6 +1,6 @@
-use anyhow::Context;
+
 use slack_morphism::SlackChannelId;
-use sqlx::{migrate::MigrateDatabase, FromRow, Pool, Sqlite, SqlitePool};
+use sqlx::{migrate::MigrateDatabase, FromRow, Sqlite, SqlitePool};
 use url::Url;
 
 use crate::utils;
