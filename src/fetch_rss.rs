@@ -16,8 +16,8 @@ use crate::{
     utils,
 };
 
-const SLEEP_EACH_FETCH_MINUTES: u64 = 10;
-const SLEEP_ALL_FETCH_MINUTES: u64 = 15;
+const SLEEP_EACH_FETCH_MINUTES: u64 = 5;
+const SLEEP_ALL_FETCH_MINUTES: u64 = 20;
 
 pub async fn feed_loop(client: Arc<SlackHyperClient>) -> anyhow::Result<()> {
     let mut interval = tokio::time::interval(Duration::from_secs(SLEEP_ALL_FETCH_MINUTES * 60));
@@ -75,7 +75,7 @@ async fn fetch_twi_url(nitter_rss_url: &Url) -> anyhow::Result<(Vec<Url>, Vec<Sl
 fn updated_tweets(items: Vec<Item>, last_date: &str) -> std::vec::Vec<url::Url> {
     items
         .into_iter()
-        .take(3)
+        .take(10)
         .take_while(|Item { pub_date, .. }| {
             pub_date.as_ref().map(std::string::String::as_str) != Some(last_date)
         })
