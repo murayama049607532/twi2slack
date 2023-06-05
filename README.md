@@ -1,6 +1,7 @@
 # Twi2Slack
 
-Twi2Slack は、公開されている Nitter インスタンスを利用し、疑似的に Twitter-Slack 連携を行う Slack アプリケーションです。
+Twi2Slack は、公開されている Nitter インスタンスを利用し、疑似的に Twitter-Slack 連携を行う Slack アプリケーションです。 \
+およそ10分ごとにインスタンスの RSS を読み込み、該当ツイートの Twitter へのリンクを設定したチャンネルに送信します。
 
 
 ### 登録
