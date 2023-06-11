@@ -64,7 +64,12 @@ async fn fetch_twi_url(nitter_rss_url: &Url) -> anyhow::Result<(Vec<Url>, Vec<Sl
         return Err(anyhow::anyhow!("No update"));
     };
 
-    let updated_tweets = updated_tweets(items, &last_date_db);
+    let updated_tweets = if last_date_db.is_empty() {
+        Vec::default()
+    } else {
+        updated_tweets(items, &last_date_db)
+    };
+
     query::update_last_date(nitter_rss_url, &last_date_rss).await?;
 
     let feed_channels = query::fetch_channels(nitter_rss_url).await?;
@@ -73,9 +78,8 @@ async fn fetch_twi_url(nitter_rss_url: &Url) -> anyhow::Result<(Vec<Url>, Vec<Sl
 }
 
 fn updated_tweets(items: Vec<Item>, last_date: &str) -> std::vec::Vec<url::Url> {
-    items
+    let updated_items = items
         .into_iter()
-        .take(10)
         .take_while(|Item { pub_date, .. }| {
             pub_date.as_ref().map(std::string::String::as_str) != Some(last_date)
         })
@@ -83,7 +87,8 @@ fn updated_tweets(items: Vec<Item>, last_date: &str) -> std::vec::Vec<url::Url> 
             link.and_then(|s| Url::parse(&s).ok())
                 .and_then(|url| utils::nitter_url_to_twi(&url).ok())
         })
-        .collect::<Vec<_>>()
+        .collect::<Vec<_>>();
+    updated_items.into_iter().rev().collect::<Vec<_>>()
 }
 fn last_update(items: &[Item]) -> anyhow::Result<String> {
     let last_date = items
