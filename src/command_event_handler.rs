@@ -4,9 +4,10 @@ use anyhow::Context;
 use dotenvy::dotenv;
 use slack_morphism::{
     prelude::{
-        SlackClientEventsUserState, SlackCommandEvent, SlackCommandEventResponse, SlackHyperClient,
+        SlackApiChatPostMessageRequest, SlackClientEventsUserState, SlackCommandEvent,
+        SlackCommandEventResponse, SlackHyperClient,
     },
-    SlackMessageContent,
+    SlackApiTokenType, SlackChannelId, SlackMessageContent,
 };
 use url::Url;
 
@@ -56,7 +57,9 @@ pub async fn command_event_handler(
         }
     };
 
-    Ok(SlackCommandEventResponse::new(content))
+    send_system_message(client, content, channel_id_command).await?;
+
+    Ok(SlackCommandEventResponse::new(SlackMessageContent::new()))
 }
 
 fn account_to_default_nitter_rss_url(account: &str) -> anyhow::Result<Url> {
@@ -68,4 +71,22 @@ fn account_to_default_nitter_rss_url(account: &str) -> anyhow::Result<Url> {
     let nitter_rss_url = default_url.join(&add_seg)?;
 
     Ok(nitter_rss_url)
+}
+
+async fn send_system_message(
+    client: Arc<SlackHyperClient>,
+    content: SlackMessageContent,
+    channel: SlackChannelId,
+) -> anyhow::Result<()> {
+    let token = utils::get_token(&SlackApiTokenType::Bot)?;
+    let session = client.open_session(&token);
+
+    let req = SlackApiChatPostMessageRequest::new(channel, content);
+
+    let _message_res = session
+        .chat_post_message(&req)
+        .await
+        .context("failed to post message.")?;
+
+    Ok(())
 }
