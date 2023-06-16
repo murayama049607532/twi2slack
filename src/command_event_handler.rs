@@ -10,11 +10,11 @@ use slack_morphism::{
 };
 use url::Url;
 
-use crate::{query, utils};
+use crate::{fetch_rss, query, utils};
 
 pub async fn command_event_handler(
     event: SlackCommandEvent,
-    _client: Arc<SlackHyperClient>,
+    client: Arc<SlackHyperClient>,
     _states: SlackClientEventsUserState,
 ) -> Result<SlackCommandEventResponse, Box<dyn std::error::Error + Send + Sync>> {
     let channel_id_command = event.channel_id.clone();
@@ -39,8 +39,16 @@ pub async fn command_event_handler(
                 account_to_default_nitter_rss_url(add)?
             };
 
+            let nitter = utils::nitter_url_to_nitter(&nitter_url)?.to_string();
+            let is_exist_nitter = query::nitter_exist(&nitter).await?;
+
             query::insert_last_item(&nitter_url).await?;
             query::insert_feed_channel(&channel_id_command, &nitter_url).await?;
+
+            if !is_exist_nitter {
+                //println!("not exist {nitter}");
+                tokio::spawn(fetch_rss::feed_loop_nitter(Arc::clone(&client), nitter));
+            };
 
             let account = utils::url_to_account(&nitter_url)?;
 

@@ -12,7 +12,7 @@ use tokio::time::Duration;
 use url::Url;
 
 use crate::{
-    query::{self, fetch_rss_urls},
+    query::{self, fetch_nitters, fetch_rss_urls},
     utils,
 };
 
@@ -20,26 +20,25 @@ const SLEEP_EACH_FETCH_MINUTES: u64 = 5;
 const SLEEP_ALL_FETCH_MINUTES: u64 = 20;
 
 pub async fn feed_loop(client: Arc<SlackHyperClient>) -> anyhow::Result<()> {
+    let nitters = fetch_nitters().await?;
+    for nitter in nitters {
+        tokio::spawn(feed_loop_nitter(Arc::clone(&client), nitter));
+    }
+
+    Ok(())
+}
+pub async fn feed_loop_nitter(client: Arc<SlackHyperClient>, nitter: String) -> anyhow::Result<()> {
     let mut interval = tokio::time::interval(Duration::from_secs(SLEEP_ALL_FETCH_MINUTES * 60));
 
     loop {
-        let rss_urls = fetch_rss_urls().await.unwrap_or_default();
+        let rss_urls = fetch_rss_urls(&nitter).await.unwrap_or_default();
 
         let rss_urls_stream = futures::stream::iter(rss_urls);
 
-        let last_tweets = rss_urls_stream
-            .filter_map(|url| async move {
-                tokio::time::sleep(Duration::from_secs(SLEEP_EACH_FETCH_MINUTES * 60)).await;
-                fetch_twi_url(&url).await.ok()
-            })
-            .collect::<Vec<_>>()
-            .await;
-
-        let last_tweets_stream = futures::stream::iter(last_tweets);
-        last_tweets_stream
-            .filter_map(|(url, channels)| async {
+        rss_urls_stream
+            .filter_map(|url| async {
                 let cli = Arc::clone(&client);
-                async move { send_message_channels(channels, &url, cli).await.ok() }.await
+                async move { feed_send(cli, &url).await.ok() }.await
             })
             .collect::<()>()
             .await;
@@ -48,8 +47,17 @@ pub async fn feed_loop(client: Arc<SlackHyperClient>) -> anyhow::Result<()> {
     }
 }
 
+async fn feed_send(client: Arc<SlackHyperClient>, url: &Url) -> anyhow::Result<()> {
+    tokio::time::sleep(Duration::from_secs(SLEEP_EACH_FETCH_MINUTES * 60)).await;
+
+    let (urls, channels) = fetch_twi_url(url).await?;
+    send_message_channels(channels, &urls, client).await
+}
+
 async fn fetch_twi_url(nitter_rss_url: &Url) -> anyhow::Result<(Vec<Url>, Vec<SlackChannelId>)> {
     let raw_rss = reqwest::get(nitter_rss_url.clone()).await?;
+    //println!("request occured. url: {:#?}", nitter_rss_url.domain());
+    //utils::print_datetime();
 
     let rss_bytes = raw_rss.bytes().await?;
 
@@ -60,7 +68,7 @@ async fn fetch_twi_url(nitter_rss_url: &Url) -> anyhow::Result<(Vec<Url>, Vec<Sl
 
     let last_date_db = query::fetch_last_date(nitter_rss_url).await?;
     if last_date_db == last_date_rss {
-        println!("no update");
+        //println!("no update");
         return Err(anyhow::anyhow!("No update"));
     };
 

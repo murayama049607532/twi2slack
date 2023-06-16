@@ -2089,6 +2089,7 @@ name = "twit2slack"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "dotenvy",
  "futures",
  "http",

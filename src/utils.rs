@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+use chrono::Local;
 use dotenvy::dotenv;
 use slack_morphism::{SlackApiToken, SlackApiTokenType, SlackApiTokenValue};
 use std::env;
@@ -25,10 +26,21 @@ pub fn nitter_url_to_twi(nitter_url: &Url) -> anyhow::Result<Url> {
     Ok(tweet_url)
 }
 
+pub fn nitter_url_to_nitter(nitter_url: &Url) -> anyhow::Result<&str> {
+    let nitter = nitter_url.domain().context("invalid url")?;
+    Ok(nitter)
+}
+
 pub fn url_to_account(nitter_url: &Url) -> anyhow::Result<&str> {
     let account = nitter_url
         .path_segments()
         .and_then(|mut s| s.next())
         .context("invalid input")?;
     Ok(account)
+}
+
+pub fn _print_datetime() {
+    let datetime = Local::now();
+
+    print!("{datetime:#?}");
 }

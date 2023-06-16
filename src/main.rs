@@ -5,6 +5,7 @@ mod fetch_rss;
 mod query;
 mod utils;
 
+use fetch_rss::feed_loop;
 use slack_morphism::prelude::*;
 use std::sync::Arc;
 
@@ -46,12 +47,9 @@ async fn main() -> anyhow::Result<()> {
     let app_token = Arc::new(utils::get_token(&SlackApiTokenType::App)?);
     let client = Arc::new(SlackClient::new(SlackClientHyperConnector::new()));
 
-    tokio::spawn(socket_mode_process(
-        Arc::clone(&client),
-        Arc::clone(&app_token),
-    ));
+    tokio::spawn(feed_loop(client.clone()));
 
-    fetch_rss::feed_loop(client).await?;
+    socket_mode_process(Arc::clone(&client), Arc::clone(&app_token)).await?;
 
     Ok(())
 }
