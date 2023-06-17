@@ -82,8 +82,6 @@ pub async fn nitter_exist(nitter: &str) -> anyhow::Result<bool> {
     .fetch_one(&pool)
     .await?;
 
-    println!("int {i_exist}");
-
     let exist = i_exist.eq(&1);
 
     Ok(exist)

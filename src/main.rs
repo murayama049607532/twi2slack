@@ -3,6 +3,7 @@
 mod command_event_handler;
 mod fetch_rss;
 mod query;
+mod send_message;
 mod utils;
 
 use fetch_rss::feed_loop;
@@ -13,7 +14,6 @@ async fn socket_mode_process(
     client: Arc<SlackHyperClient>,
     app_token: Arc<SlackApiToken>,
 ) -> anyhow::Result<()> {
-    println!("socket_mode start");
     let socket_mode_callbacks = SlackSocketModeListenerCallbacks::new()
         .with_command_events(command_event_handler::command_event_handler);
     let listner_environment = Arc::new(
