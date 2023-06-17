@@ -19,7 +19,6 @@ reqwest = "0.11.18"
 rss = "2.0.4"
 sqlx = { version = "0.6.3", features = ["runtime-tokio-native-tls", "sqlite"]}
 chrono = "0.4.26"
-quick-xml = "0.29.0"
 scraper = "0.16.0"
 regex = "1.8.4"
 base64 = "0.21.2"
