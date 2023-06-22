@@ -20,7 +20,7 @@ pub fn get_token(token_type: &SlackApiTokenType) -> anyhow::Result<SlackApiToken
 }
 
 pub fn nitter_url_to_twi(nitter_url: &Url) -> anyhow::Result<Url> {
-    let twitter_host = Url::parse("https://twitter.com/")?;
+    let twitter_host = Url::parse("https://fxtwitter.com/")?;
     let tweet_path = nitter_url.path();
 
     let tweet_url = twitter_host.join(tweet_path)?;
@@ -45,7 +45,7 @@ pub fn is_retweet(tweet_url: &Url, nitter_account: &str) -> bool {
     url_to_account(tweet_url).map_or(false, |twi_account| twi_account != nitter_account)
 }
 pub fn account_to_twitter_profile(account: &str) -> anyhow::Result<Url> {
-    let twitter_host = Url::parse("https://fxtwitter.com/")?;
+    let twitter_host = Url::parse("https://twitter.com/")?;
     let tweet_url = twitter_host.join(account)?;
 
     Ok(tweet_url)
