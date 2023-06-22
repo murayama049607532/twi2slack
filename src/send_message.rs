@@ -97,13 +97,16 @@ fn tweet_imgs_contents(tweet: &Tweet) -> Vec<SlackMessageContent> {
     }
 }
 
-fn retweet_text(tweet: &Tweet, account: &str, display_name: &str) -> anyhow::Result<String> {
-    let twi_profile_url = utils::account_to_twitter_profile(account)?;
-    let text = format!(
-        "{}\n<{}|{display_name}> retweeted:",
-        tweet.twi_url.as_str(),
-        twi_profile_url.as_str()
-    );
+// retweet 時にプロフィールのリンクが展開されてしまう問題への姑息な対応
+// 問題が対処され次第コメントアウトを外す
+fn retweet_text(_tweet: &Tweet, account: &str, display_name: &str) -> anyhow::Result<String> {
+    let _twi_profile_url = utils::account_to_twitter_profile(account)?;
+    let text = format!("{display_name} retweeted:");
+    // let text = format!(
+    //     "{}\n<{}|{display_name}> retweeted:",
+    //     tweet.twi_url.as_str(),
+    //     twi_profile_url.as_str()
+    // );
 
     Ok(text)
 }

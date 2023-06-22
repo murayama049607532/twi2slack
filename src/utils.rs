@@ -45,7 +45,7 @@ pub fn is_retweet(tweet_url: &Url, nitter_account: &str) -> bool {
     url_to_account(tweet_url).map_or(false, |twi_account| twi_account != nitter_account)
 }
 pub fn account_to_twitter_profile(account: &str) -> anyhow::Result<Url> {
-    let twitter_host = Url::parse("https://twitter.com/")?;
+    let twitter_host = Url::parse("https://fxtwitter.com/")?;
     let tweet_url = twitter_host.join(account)?;
 
     Ok(tweet_url)

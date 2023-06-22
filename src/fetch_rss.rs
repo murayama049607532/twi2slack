@@ -15,7 +15,6 @@ use crate::{
 };
 
 const SLEEP_EACH_FETCH_MINUTES: u64 = 5;
-const SLEEP_ALL_FETCH_MINUTES: u64 = 20;
 
 pub async fn feed_loop(client: Arc<SlackHyperClient>) -> anyhow::Result<()> {
     let nitters = fetch_nitters().await?;
@@ -26,8 +25,6 @@ pub async fn feed_loop(client: Arc<SlackHyperClient>) -> anyhow::Result<()> {
     Ok(())
 }
 pub async fn feed_loop_nitter(client: Arc<SlackHyperClient>, nitter: String) -> anyhow::Result<()> {
-    let mut interval = tokio::time::interval(Duration::from_secs(SLEEP_ALL_FETCH_MINUTES * 60));
-
     loop {
         let rss_urls = fetch_rss_urls(&nitter).await.unwrap_or_default();
 
@@ -40,8 +37,6 @@ pub async fn feed_loop_nitter(client: Arc<SlackHyperClient>, nitter: String) -> 
             })
             .collect::<()>()
             .await;
-
-        interval.tick().await;
     }
 }
 
