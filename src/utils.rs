@@ -20,7 +20,7 @@ pub fn get_token(token_type: &SlackApiTokenType) -> anyhow::Result<SlackApiToken
 }
 
 pub fn nitter_url_to_twi(nitter_url: &Url) -> anyhow::Result<Url> {
-    let twitter_host = Url::parse("https://fxtwitter.com/")?;
+    let twitter_host = Url::parse("https://twitter.com/")?;
     let tweet_path = nitter_url.path();
 
     let tweet_url = twitter_host.join(tweet_path)?;
